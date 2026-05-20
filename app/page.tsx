@@ -17,11 +17,17 @@ export default function Home() {
       .catch((err) => console.log(err))
   }, [])
 
-  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)))
-  const distributors = Array.from(new Set(products.map((p) => p.distributor).filter(Boolean)))
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean))
+  )
+
+  const distributors = Array.from(
+    new Set(products.map((p) => p.distributor).filter(Boolean))
+  )
 
   const filteredProducts = products.filter((product) => {
-    const text = `${product.name} ${product.sku} ${product.brand}`.toLowerCase()
+    const text =
+      `${product.name} ${product.sku} ${product.brand}`.toLowerCase()
 
     return (
       text.includes(search.toLowerCase()) &&
@@ -31,7 +37,13 @@ export default function Home() {
   })
 
   return (
-    <main style={{ background: "#ffffff", minHeight: "100vh", padding: "20px" }}>
+    <main
+      style={{
+        background: "#ffffff",
+        minHeight: "100vh",
+        padding: "20px",
+      }}
+    >
       <section
         style={{
           background: "linear-gradient(135deg, #2563eb, #0f172a)",
@@ -41,8 +53,21 @@ export default function Home() {
           marginBottom: "24px",
         }}
       >
-        <h1 style={{ fontSize: "34px", fontWeight: 800 }}>Retail Order Builder</h1>
-        <p style={{ color: "#dbeafe", marginTop: "8px" }}>
+        <h1
+          style={{
+            fontSize: "34px",
+            fontWeight: 800,
+          }}
+        >
+          Retail Order Builder
+        </h1>
+
+        <p
+          style={{
+            color: "#dbeafe",
+            marginTop: "8px",
+          }}
+        >
           Search products, add items to cart, and generate distributor order PDFs.
         </p>
 
@@ -104,8 +129,11 @@ export default function Home() {
           }}
         >
           <option value="all">All Categories</option>
+
           {categories.map((cat: any) => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
           ))}
         </select>
 
@@ -122,13 +150,22 @@ export default function Home() {
           }}
         >
           <option value="all">All Distributors</option>
+
           {distributors.map((dist: any) => (
-            <option key={dist} value={dist}>{dist}</option>
+            <option key={dist} value={dist}>
+              {dist}
+            </option>
           ))}
         </select>
       </section>
 
-      <p style={{ marginBottom: "18px", color: "#334155", fontWeight: 600 }}>
+      <p
+        style={{
+          marginBottom: "18px",
+          color: "#334155",
+          fontWeight: 600,
+        }}
+      >
         Showing {filteredProducts.length} products
       </p>
 
@@ -178,16 +215,80 @@ export default function Home() {
               </div>
             )}
 
-            <h2 style={{ fontSize: "21px", marginTop: "16px", color: "#0f172a" }}>
+            <h2
+              style={{
+                fontSize: "21px",
+                marginTop: "16px",
+                color: "#0f172a",
+              }}
+            >
               {product.name}
             </h2>
 
-            <p style={{ color: "#475569" }}>SKU: {product.sku}</p>
-            <p style={{ color: "#475569" }}>Brand: {product.brand || "N/A"}</p>
-            <p style={{ color: "#475569" }}>Category: {product.category || "N/A"}</p>
+            <p style={{ color: "#475569" }}>
+              SKU: {product.sku}
+            </p>
+
+            <p style={{ color: "#475569" }}>
+              Brand: {product.brand || "N/A"}
+            </p>
+
+            <p style={{ color: "#475569" }}>
+              Category: {product.category || "N/A"}
+            </p>
+
             <p style={{ color: "#475569" }}>
               Distributor: {product.distributor || "N/A"}
             </p>
+
+            <input
+              type="text"
+              placeholder="Paste image URL"
+              onBlur={async (e) => {
+                const imageUrl = e.target.value
+
+                if (!imageUrl) return
+
+                try {
+                  await fetch(
+                    `https://retail-ordering-backend.onrender.com/products/${product.id}`,
+                    {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ imageUrl }),
+                    }
+                  )
+
+                  setProducts(
+                    products.map((p) =>
+                      p.id === product.id
+                        ? {
+                            ...p,
+                            imageUrl,
+                          }
+                        : p
+                    )
+                  )
+
+                  alert("Image updated successfully 🚀")
+                } catch (err) {
+                  console.log(err)
+                  alert("Failed to update image")
+                }
+              }}
+              style={{
+                marginTop: "12px",
+                width: "100%",
+                padding: "12px",
+                borderRadius: "12px",
+                border: "1px solid #cbd5e1",
+                color: "#0f172a",
+                background: "white",
+                fontSize: "14px",
+              }}
+            />
 
             <button
               onClick={() => addToCart(product)}
