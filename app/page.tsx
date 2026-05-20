@@ -1,65 +1,213 @@
-import Image from "next/image";
+"use client"
+
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { addToCart } from "@/lib/cart"
 
 export default function Home() {
+  const [products, setProducts] = useState<any[]>([])
+  const [search, setSearch] = useState("")
+  const [category, setCategory] = useState("all")
+  const [distributor, setDistributor] = useState("all")
+
+  useEffect(() => {
+    fetch("http://172.20.10.6:5000/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch((err) => console.log(err))
+  }, [])
+
+  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)))
+  const distributors = Array.from(new Set(products.map((p) => p.distributor).filter(Boolean)))
+
+  const filteredProducts = products.filter((product) => {
+    const text = `${product.name} ${product.sku} ${product.brand}`.toLowerCase()
+
+    return (
+      text.includes(search.toLowerCase()) &&
+      (category === "all" || product.category === category) &&
+      (distributor === "all" || product.distributor === distributor)
+    )
+  })
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main style={{ background: "#ffffff", minHeight: "100vh", padding: "20px" }}>
+      <section
+        style={{
+          background: "linear-gradient(135deg, #2563eb, #0f172a)",
+          color: "white",
+          borderRadius: "24px",
+          padding: "28px",
+          marginBottom: "24px",
+        }}
+      >
+        <h1 style={{ fontSize: "34px", fontWeight: 800 }}>Retail Order Builder</h1>
+        <p style={{ color: "#dbeafe", marginTop: "8px" }}>
+          Search products, add items to cart, and generate distributor order PDFs.
+        </p>
+
+        <Link href="/cart">
+          <button
+            style={{
+              marginTop: "20px",
+              width: "100%",
+              background: "white",
+              color: "#0f172a",
+              padding: "14px",
+              borderRadius: "14px",
+              border: "none",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            View Cart
+          </button>
+        </Link>
+      </section>
+
+      <section
+        style={{
+          background: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          borderRadius: "20px",
+          padding: "18px",
+          marginBottom: "24px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "14px",
+        }}
+      >
+        <input
+          placeholder="Search by name, SKU, or brand..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            padding: "15px",
+            borderRadius: "14px",
+            border: "1px solid #cbd5e1",
+            color: "#0f172a",
+            background: "white",
+            fontSize: "15px",
+          }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          style={{
+            padding: "15px",
+            borderRadius: "14px",
+            border: "1px solid #cbd5e1",
+            color: "#0f172a",
+            background: "white",
+            fontSize: "15px",
+          }}
+        >
+          <option value="all">All Categories</option>
+          {categories.map((cat: any) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+
+        <select
+          value={distributor}
+          onChange={(e) => setDistributor(e.target.value)}
+          style={{
+            padding: "15px",
+            borderRadius: "14px",
+            border: "1px solid #cbd5e1",
+            color: "#0f172a",
+            background: "white",
+            fontSize: "15px",
+          }}
+        >
+          <option value="all">All Distributors</option>
+          {distributors.map((dist: any) => (
+            <option key={dist} value={dist}>{dist}</option>
+          ))}
+        </select>
+      </section>
+
+      <p style={{ marginBottom: "18px", color: "#334155", fontWeight: 600 }}>
+        Showing {filteredProducts.length} products
+      </p>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "22px",
+        }}
+      >
+        {filteredProducts.map((product) => (
+          <div
+            key={product.id}
+            style={{
+              background: "#ffffff",
+              borderRadius: "22px",
+              padding: "18px",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                style={{
+                  width: "100%",
+                  height: "180px",
+                  objectFit: "contain",
+                  borderRadius: "16px",
+                  background: "#f8fafc",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  height: "180px",
+                  background: "#f1f5f9",
+                  color: "#64748b",
+                  borderRadius: "16px",
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 600,
+                }}
+              >
+                No Image
+              </div>
+            )}
+
+            <h2 style={{ fontSize: "21px", marginTop: "16px", color: "#0f172a" }}>
+              {product.name}
+            </h2>
+
+            <p style={{ color: "#475569" }}>SKU: {product.sku}</p>
+            <p style={{ color: "#475569" }}>Brand: {product.brand || "N/A"}</p>
+            <p style={{ color: "#475569" }}>Category: {product.category || "N/A"}</p>
+            <p style={{ color: "#475569" }}>
+              Distributor: {product.distributor || "N/A"}
+            </p>
+
+            <button
+              onClick={() => addToCart(product)}
+              style={{
+                marginTop: "16px",
+                width: "100%",
+                padding: "14px",
+                borderRadius: "14px",
+                background: "#2563eb",
+                color: "white",
+                border: "none",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Add to Cart
+            </button>
+          </div>
+        ))}
+      </div>
+    </main>
+  )
 }
