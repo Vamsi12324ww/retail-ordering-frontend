@@ -11,7 +11,7 @@ export default function Home() {
   const [distributor, setDistributor] = useState("all")
 
   useEffect(() => {
-    fetch("http://172.20.10.6:5000/products")
+    fetch("https://retail-ordering-backend.onrender.com/products")
       .then((res) => res.json())
       .then((data) => setProducts(data))
       .catch((err) => console.log(err))
