@@ -20,7 +20,7 @@ export function saveCart(cart: CartItem[]) {
   localStorage.setItem("cart", JSON.stringify(cart))
 }
 
-export function addToCart(product: any) {
+export function addToCart(product: any, quantity = 1) {
   const cart = getCart()
 
   const existing = cart.find(
@@ -28,7 +28,7 @@ export function addToCart(product: any) {
   )
 
   if (existing) {
-    existing.quantity += 1
+    existing.quantity += quantity
   } else {
     cart.push({
       id: product.id,
@@ -37,7 +37,7 @@ export function addToCart(product: any) {
       price: product.price,
       imageUrl: product.imageUrl,
       distributor: product.distributor || "Default Distributor",
-      quantity: 1,
+      quantity,
     })
   }
 

@@ -10,6 +10,9 @@ export default function Home() {
   const [category, setCategory] = useState("all")
   const [distributor, setDistributor] = useState("all")
 
+  // Quantity state
+  const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
+
   useEffect(() => {
     fetch("https://retail-ordering-backend.onrender.com/products")
       .then((res) => res.json())
@@ -35,6 +38,23 @@ export default function Home() {
       (distributor === "all" || product.distributor === distributor)
     )
   })
+
+  // Quantity helpers
+  const getQty = (id: number) => quantities[id] || 1
+
+  const increaseProductQty = (id: number) => {
+    setQuantities({
+      ...quantities,
+      [id]: getQty(id) + 1,
+    })
+  }
+
+  const decreaseProductQty = (id: number) => {
+    setQuantities({
+      ...quantities,
+      [id]: Math.max(1, getQty(id) - 1),
+    })
+  }
 
   return (
     <main
@@ -241,70 +261,79 @@ export default function Home() {
               Distributor: {product.distributor || "N/A"}
             </p>
 
-            <input
-              type="text"
-              placeholder="Paste image URL"
-              onBlur={async (e) => {
-                const imageUrl = e.target.value
+            {/* Quantity Controls */}
 
-                if (!imageUrl) return
-
-                try {
-                  await fetch(
-                    `https://retail-ordering-backend.onrender.com/products/${product.id}`,
-                    {
-                      method: "PUT",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({ imageUrl }),
-                    }
-                  )
-
-                  setProducts(
-                    products.map((p) =>
-                      p.id === product.id
-                        ? {
-                            ...p,
-                            imageUrl,
-                          }
-                        : p
-                    )
-                  )
-
-                  alert("Image updated successfully 🚀")
-                } catch (err) {
-                  console.log(err)
-                  alert("Failed to update image")
-                }
+            <div
+              style={{
+                marginTop: "16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                background: "#f8fafc",
+                padding: "8px",
+                borderRadius: "14px",
               }}
+            >
+              <button
+                onClick={() => decreaseProductQty(product.id)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: "10px",
+                  border: "none",
+                  background: "#e2e8f0",
+                  cursor: "pointer",
+                  fontWeight: 800,
+                }}
+              >
+                -
+              </button>
+
+              <strong
+                style={{
+                  color: "#0f172a",
+                  minWidth: 30,
+                  textAlign: "center",
+                  fontSize: "18px",
+                }}
+              >
+                {getQty(product.id)}
+              </strong>
+
+              <button
+                onClick={() => increaseProductQty(product.id)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: "10px",
+                  border: "none",
+                  background: "#2563eb",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: 800,
+                }}
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              onClick={() =>
+                addToCart(product, getQty(product.id))
+              }
               style={{
                 marginTop: "12px",
                 width: "100%",
-                padding: "12px",
-                borderRadius: "12px",
-                border: "1px solid #cbd5e1",
-                color: "#0f172a",
-                background: "white",
-                fontSize: "14px",
-              }}
-            />
-
-            <button
-              onClick={() => addToCart(product)}
-              style={{
-                marginTop: "16px",
-                width: "100%",
                 padding: "14px",
                 borderRadius: "14px",
-                background: "#2563eb",
+                background: "#16a34a",
                 color: "white",
                 border: "none",
                 fontWeight: 700,
                 cursor: "pointer",
               }}
             >
-              Add to Cart
+              Add {getQty(product.id)} to Cart
             </button>
           </div>
         ))}
